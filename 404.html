@@ -1,0 +1,39 @@
+<!-- 404.html -->
+<script>
+  // GitHub Pages SPA fallback
+  const redirect = sessionStorage.redirect;
+  if (redirect && redirect !== location.href) {
+    sessionStorage.removeItem('redirect');
+    location.replace(redirect);
+  }
+</script>
+
+<script>
+  (function(){
+    // 로그인 페이지에서만 최초 재생
+    if (!window.__BGM_LOADED__) {
+     const audio = new Audio("assets/music.mp3");
+     audio.loop = true;
+     audio.volume = 0.4;
+
+     // 볼륨 등 조정 가능
+     window.__BGM_AUDIO__ = audio;
+     window.__BGM_LOADED__ = true;
+
+     // 사용자가 클릭(로그인 등) 시 재생 허용
+     document.addEventListener("click", ()=>{
+       audio.play().then(()=>{
+         console.log("🎵 로그인 페이지 BGM 재생 시작");
+         // 재생 상태 저장
+         sessionStorage.setItem("bgm_enabled", "1");
+         sessionStorage.setItem("bgm_time", audio.currentTime);
+       }).catch(()=>{});
+     });
+
+     // 진행도 저장
+     audio.addEventListener("timeupdate", ()=>{
+       sessionStorage.setItem("bgm_time", audio.currentTime);
+     });
+    }
+  })();
+  </script>

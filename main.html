@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>백일몽주식회사 임직원 복지몰</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="mall-page">
+  <script>
+  (function(){
+    // 로그인 페이지에서 bgm_enabled가 true일 경우
+    if (sessionStorage.getItem("bgm_enabled") === "1" && !window.__BGM_AUDIO__) {
+      const audio = new Audio("assets/music.mp3");
+      audio.loop = true;
+      audio.volume = 0.4;
+
+      // 이전 재생 위치 복원
+      const last = Number(sessionStorage.getItem("bgm_time") || 0);
+      if (isFinite(last) && last > 0) audio.currentTime = last;
+
+      audio.play().then(()=>{
+        console.log("🎧 메인 페이지에서 이어서 재생됨");
+      }).catch(()=>{
+        console.log("🔇 자동재생 차단됨 (사용자 상호작용 필요)");
+      });
+
+      // 진행도 계속 저장
+      audio.addEventListener("timeupdate", ()=>{
+        sessionStorage.setItem("bgm_time", audio.currentTime);
+      });
+
+      window.__BGM_AUDIO__ = audio;
+    }
+  })();
+  </script>
+
+
+  <!-- 헤더 -->
+  <header class="mall-header">
+    <div class="mall-header__inner">
+      <button id="backBtn" class="back-btn" aria-label="뒤로가기">←</button>
+      <a class="logo" href="#">백일몽주식회사 임직원 복지몰</a>
+      <nav class="mall-gnb">
+        <a href="#">포인트 등록</a><a href="#">등괴록을담</a>
+        <a href="notes.html" id="memoLink">😃</a><a href="radio.html">안녕 교통정보</a><a href="tarot.html">양자택일</a>
+      </nav>
+      <div class="mall-quick">
+        <button id="cartBtn" class="icon-btn" aria-label="장바구니">🛒</button>
+        <button id="profileBtn" class="icon-btn" aria-label="내 계정">👤</button>
+        <button id="signOutBtn" class="btn">로그아웃</button>
+      </div>
+    </div>
+    <div id="cartPopup" class="cart-pop" aria-hidden="true">
+      <div class="cart-pop__panel">
+        <button id="closeCart" class="cart-pop__close" aria-label="닫기">✕</button>
+        <h3 class="cart-pop__title">장바구니</h3>
+        <ul id="cartList" class="cart-pop__list"></ul>
+        <div class="cart-pop__total">합계: <strong><span id="cartTotal">0</span>p</strong></div>
+     </div>
+    </div>
+    <div id="profilePopup" class="cart-pop" aria-hidden="true">
+      <div class="cart-pop__panel">
+        <button id="closeProfile" class="cart-pop__close" aria-label="닫기">✕</button>
+        <h3 class="cart-pop__title">내 계정 정보</h3>
+        <ul class="cart-pop__list">
+          <li><span>이름</span><span id="profileName">이자헌</span></li>
+          <li><span>직급</span><span id="profileRank">—</span></li>
+          <li><span>부서</span><span id="profileDept">—</span></li>
+          <li><span>소속</span><span id="profileTeam">—</span></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+<!-- ✅ 교체 -->
+<div id="welcomeToast" class="toast" aria-live="polite" aria-hidden="true"></div>
+
+  <!-- 히어로 배너 -->
+  <section class="hero" aria-label="프로모션">
+    <div class="hero__track" id="heroTrack">
+      <a class="hero__slide" href="#" aria-label="프로모션1"><img src="assets/hero1.png" alt="" /></a>
+      <a class="hero__slide" href="#" aria-label="프로모션2"><img src="assets/hero2.png" alt="" /></a>
+      <a class="hero__slide" href="#" aria-label="프로모션3"><img src="assets/hero3.png" alt="" /></a>
+    </div>
+    <div class="hero__dots">
+      <button class="dot is-active"></button>
+      <button class="dot"></button>
+      <button class="dot"></button>
+    </div>
+  </section>
+
+  <!-- 혜택/카테고리 라인 -->
+  <section class="benefit-line">
+  <div class="pill active" data-filter="new">신규 등록</div>
+  <div class="pill" data-filter="inhouse">자사 제품</div>
+  <div class="pill" data-filter="best">특가 🔥</div>
+  <div class="pill" data-filter="long">장기 ■■ ■■■</div>
+</section>
+
+  <section class="sort-bar">
+  <button class="sort-btn" data-sort="name">이름순</button>
+  <button class="sort-btn" data-sort="high">높은 가격순</button>
+  <button class="sort-btn" data-sort="low">낮은 가격순</button>
+</section>
+
+  <!-- 상품 그리드 -->
+  <main class="container" id="productRoot"></main>
+
+
+<!-- ▼ 포인트 등록 화면 -------------------------------------------- -->
+<section id="pointsSection" class="points hide" aria-labelledby="pointsTitle">
+  <div class="container">
+    <h2 id="pointsTitle" class="points__title">포인트 등록</h2>
+
+    <!-- 등록 폼 -->
+    <form id="pointsForm" class="points__form" novalidate>
+      <!-- 등급 선택 -->
+      <div>
+        <label class="points__label">등급 선택</label>
+        <div class="grade-group" role="group" aria-label="등급">
+          <button type="button" class="grade-btn" data-grade="S">S</button>
+          <button type="button" class="grade-btn" data-grade="A">A</button>
+          <button type="button" class="grade-btn" data-grade="B">B</button>
+          <button type="button" class="grade-btn" data-grade="C">C</button>
+          <button type="button" class="grade-btn" data-grade="D">D</button>
+          <button type="button" class="grade-btn" data-grade="E">E</button>
+          <button type="button" class="grade-btn" data-grade="F">F</button>
+        </div>
+        <input type="hidden" id="gradeInput" name="grade" />
+      </div>
+
+      <!-- 이름 -->
+      <div>
+        <label for="regName" class="points__label">이름</label>
+        <input id="regName" name="name" placeholder="이름을 입력하세요" autocomplete="name" />
+      </div>
+
+      <!-- 파일 -->
+      <div>
+        <label for="regFile" class="points__label">첨부 파일 (PDF만)</label>
+        <input id="regFile" name="file" type="file" accept="application/pdf" />
+        <p class="points__help">* PDF만 업로드 가능합니다.</p>
+      </div>
+
+      <!-- 완료 버튼 -->
+      <div class="points__actions">
+        <button id="pointsSubmit" class="btn">완료</button>
+        <span id="pointsMsg" class="points__msg" aria-live="polite"></span>
+      </div>
+    </form>
+
+    <!-- 게시판 스타일 리스트 (더미 10개 / 클릭 불가) -->
+    <div class="points__board">
+      <h3 class="points__subtitle">최근 등록 내역</h3>
+      <ul class="points-list" aria-label="최근 등록 내역">
+        <li>[F] 선택해줘</li>
+        <li>[C] 이제 신부에게 키스하세요</li>
+        <li>[D] 삐에로는 널 싫어해</li>
+        <li>[B] 헝그리 행맨</li>
+        <li>[D] 화요 퀴즈쇼</li>
+        <li>[D] 심연교통공사에 어서오세요</li>
+        <li>[D] 모르는 게 정답</li>
+        <li>[A] Q■■rw-A-3■</li>
+        <li>[F] 선택해줘</li>
+        <li>[F] 선택해줘</li>
+      </ul>
+      <div id="pointsPager" class="points-pager"></div>
+    </div>
+  </div>
+
+  <!-- 하단 우측: 지급 포인트 버튼 -->
+  <button id="openPointTable" class="points-fab" aria-haspopup="dialog" aria-controls="pointTablePop">지급 포인트</button>
+
+  <!-- 지급 포인트 팝업 -->
+  <div id="pointTablePop" class="points-pop" role="dialog" aria-modal="true" aria-labelledby="pointPopTitle">
+    <div class="points-pop__panel">
+      <h4 id="pointPopTitle" class="points-pop__title">등급별 지급 포인트</h4>
+      <ul class="points-pop__list">
+        <li><b>F등급</b> : 100p</li>
+        <li><b>D등급</b> : 1,000p</li>
+        <li><b>C등급</b> : 2,500p</li>
+        <li><b>B등급</b> : 10,000p</li>
+        <li><b>A등급</b> : 100,000p</li>
+        <li><b>S등급</b> : 별도 심사</li>
+      </ul>
+      <button id="closePointTable" class="points-pop__close">닫기</button>
+    </div>
+    <div class="points-pop__backdrop"></div>
+  </div>
+</section>
+<!-- ▲ 포인트 등록 화면 -------------------------------------------- -->
+
+
+
+<img id="edgeAd" class="edge-ad" src="assets/ad.gif" alt="프로모션" />
+
+<div id="edgeBubble" class="edge-bubble" role="button" tabindex="0" aria-label="프로모션 안내 팝업">
+  <div class="edge-bubble__inner">
+    <u><em>1주년 감사 할인 중! ~80%</em></u><br/>
+    <u><em>직장이 지루한가요? &gt;&gt;클릭</em></u><br/>
+    <u><em>더 강해지고 싶나요? &gt;&gt;클릭</em></u><br/>
+    <u><em>멋진 물건을 가지고 싶나요? &gt;&gt;클릭</em></u>
+  </div>
+</div>
+
+  <!-- 장기 혜택 안내 팝업 -->
+<div id="longPopup" class="notice-pop" aria-hidden="true">
+  <div class="notice-pop__backdrop" data-close></div>
+  <div class="notice-pop__panel" role="dialog" aria-modal="true" aria-labelledby="longPopTitle">
+    <button class="notice-pop__close" aria-label="닫기" data-close>✕</button>
+    <h2 id="longPopTitle" class="notice-pop__title">허용된 접근 방식이 아닙니다.</h2>
+    <p class="notice-pop__body">
+      장기 ■?■ ■■■는 접근할 수 없습니다. 근무지로 돌아가세요.
+    </p>
+    <button class="btn" data-close>확인</button>
+  </div>
+</div>
+
+<!-- 페이지 전환 오버레이 -->
+<div id="warpOverlay" class="warp" aria-hidden="true">
+  <!-- 대충 복지몰처럼 보이는 가짜 UI (깨지기 전 0.3초 동안만 보임) -->
+  <div class="warp-ui">
+    <div class="fake-header">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <strong>ALIENSHOP</strong>
+    </div>
+    <div class="fake-grid">
+      <div class="fake-card"></div><div class="fake-card"></div><div class="fake-card"></div><div class="fake-card"></div>
+      <div class="fake-card"></div><div class="fake-card"></div><div class="fake-card"></div><div class="fake-card"></div>
+    </div>
+  </div>
+
+  <!-- 깨지는 조각들 -->
+  <div class="slices">
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+</div>
+
+
+<!-- 등괴록을담 전환 오버레이 -->
+<div id="redirOverlay" class="redir" aria-hidden="true">
+  <div class="scan"></div>
+
+  <!-- 작은 에러창들이 들어갈 컨테이너 -->
+  <div class="err-stack" id="errStack"></div>
+
+  <!-- 중앙 에러창 -->
+  <div class="err-modal" role="dialog" aria-modal="true" aria-labelledby="redirTitle">
+    <div class="err-titlebar">
+      <span class="led"></span>
+      <span id="redirTitle">ERROR</span>
+      <button class="x">✕</button>
+    </div>
+    <div class="err-body">
+      <p>알? 수 없는 <em>접■ 방식</em>입니다</p>
+    </div>
+    <div class="err-actions">
+      <button id="redirOK" class="btn like-ok">예.</button>
+      <button id="redirNo" class="btn like-no">■■■</button>
+    </div>
+  </div>
+
+  <!-- 환영 화면 -->
+  <div class="welcome" id="redirWelcome" aria-hidden="true">
+    <div class="welcome-inner">
+      <div>어서오세요</div>
+      <div><em></em>님!</div>
+    </div>
+  </div>
+</div>
+<script src="./app.js"></script>
+</body>
+</html>

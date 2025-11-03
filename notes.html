@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>메모 보드 | 백일몽주식회사</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    :root{
+      --paper-yellow:#e8c353;
+      --paper-pink:#bc4949;
+      --paper-blue:#8ab6d8;
+      --paper-green:#a3c297;
+      --paper-lilac:#b0a1cc;
+      --board-bg:#0f1115;
+      --ink:#0b0e14;
+    }
+    body{ background:var(--board-bg); color:#e9edf3; }
+    .nb-top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid #1b1f2a;background:#0c0f14}
+    .nb-top a{color:#f25f5c;text-decoration:none}
+    .nb-tools{display:flex;align-items:center;gap:10px}
+    .palette button{
+      width:26px;height:26px;border-radius:6px;border:1px solid #00000020;cursor:pointer;
+    }
+    .palette .is-active{outline:2px solid #fff}
+    .nb-board{
+      position:relative; height: calc(100vh - 64px);
+      background-image: radial-gradient(#ffffff0d 1px, transparent 1px);
+      background-size: 16px 16px; overflow:hidden;
+    }
+    .note{
+      position:absolute; width:400px; min-height:140px; padding:12px 12px 28px 12px;
+      resize: horizontal;             /* ⬅️ 오른쪽 하단에 기본 리사이즈 핸들 생김 */
+      overflow: hidden;               /* 내용 넘침 숨김 */
+      min-width: 200px;
+      max-width: 720px;               /* 원하는 상한선 조절 */
+      border-radius:10px; box-shadow:0 12px 30px #00000055;
+      border:1px solid #00000025; cursor:grab;
+    }
+    .note:active{ cursor:grabbing; }
+    .note textarea{
+      width:100%; height:auto; min-height:96px; border:none; background:transparent;
+      resize:horizontal;  /* ⬅️ 가로만 핸들로 조절 */
+      overflow:hidden;    /* ⬅️ 스크롤 대신 높이 자동 증가 */
+      outline:none; color:#111; font: 15px/1.4 "Pretendard", system-ui, -apple-system, Segoe UI, Roboto;
+    }
+    .note .meta{
+      position:absolute; left:10px; bottom:6px; font-size:11px; opacity:.55; color:#111;
+    }
+    .note .del{
+      position:absolute; right:8px; top:6px; border:none; background:#00000025; color:#111; 
+      border-radius:6px; padding:4px 6px; font-size:11px; cursor:pointer; display:none;
+    }
+    .note.mod .del{ display:inline-block; }
+    .paper-yellow{ background:var(--paper-yellow); }
+    .paper-pink{   background:var(--paper-pink); }
+    .paper-blue{   background:var(--paper-blue); }
+    .paper-green{  background:var(--paper-green); }
+    .paper-lilac{  background:var(--paper-lilac); }
+    .nb-hint{position:absolute; right:14px; bottom:12px; opacity:.6; font-size:12px}
+
+    /* === 4:44 이스터에그 오버레이 === */
+    .omen{
+     position: fixed; inset: 0;
+     display: none; /* 기본 숨김 */
+     z-index: 99999;
+     pointer-events: none;
+    }
+    .omen.show{ display:block; }
+
+    /* 배경 사진(팍! 뜸) */
+    .omen-img{
+     position:absolute; inset:0; width:100%; height:100%;
+     object-fit: cover; opacity:0; filter: saturate(1.6) contrast(1.2);
+     animation: omen-flash 900ms ease forwards; /* 0~0.9s */
+    }
+    @keyframes omen-flash{
+     0%{ opacity:0; transform: scale(1.08); }
+     10%{ opacity:1; transform: scale(1.0); }
+     90%{ opacity:.85; }
+     100%{ opacity:.0; }
+    }
+
+    /* 붉은 지지직 레이어 */
+    .omen-noise{
+       position:absolute; inset:0; mix-blend-mode: screen;
+       background:
+         repeating-linear-gradient(0deg, rgba(255,0,0,.22) 0 2px, transparent 2px 4px),
+         radial-gradient(ellipse at center, rgba(255,40,40,.18), rgba(255,0,0,.02) 60%);
+       opacity:0; animation: omen-noise 1600ms ease 200ms forwards; /* 0.2~1.8s */
+    }
+    @keyframes omen-noise{
+       0%{ opacity:0; }
+       30%{ opacity:.8; }
+       80%{ opacity:.25; }
+       100%{ opacity:0; }
+    }
+
+    /* 검은 화면 페이드 인 */
+    .omen-black{
+       position:absolute; inset:0; background:#000;
+       opacity:0; animation: omen-black 1800ms ease 800ms forwards; /* 0.8~2.6s */
+    }
+    @keyframes omen-black{
+       0%{ opacity:0; }
+       100%{ opacity:1; }
+    }
+
+    /* 화면 가득 빨간 ㅋㅋㅋㅋ 타이핑 */
+    .omen-kk{
+       position:absolute; inset:0;
+       color:#ff2b2b; font-weight:900;
+       font-size: min(9vw, 140px); line-height:1.05;
+       display:flex; align-items:center; justify-content:center;
+       text-shadow:0 0 16px rgba(255,0,0,.45);
+       opacity:0; transition:opacity .2s ease;
+       padding:3vw; text-align:center; word-break:break-all; white-space:pre-wrap;
+    }
+    .omen-kk.show{ opacity:1; }
+
+  </style>
+
+
+</head>
+<body>
+  <script>
+  (function(){
+    // 로그인 페이지에서 bgm_enabled가 true일 경우
+    if (sessionStorage.getItem("bgm_enabled") === "1" && !window.__BGM_AUDIO__) {
+      const audio = new Audio("assets/music.mp3");
+      audio.loop = true;
+      audio.volume = 0.4;
+
+      // 이전 재생 위치 복원
+      const last = Number(sessionStorage.getItem("bgm_time") || 0);
+      if (isFinite(last) && last > 0) audio.currentTime = last;
+
+      audio.play().then(()=>{
+        console.log("🎧 메인 페이지에서 이어서 재생됨");
+      }).catch(()=>{
+        console.log("🔇 자동재생 차단됨 (사용자 상호작용 필요)");
+      });
+
+      // 진행도 계속 저장
+      audio.addEventListener("timeupdate", ()=>{
+        sessionStorage.setItem("bgm_time", audio.currentTime);
+      });
+
+      window.__BGM_AUDIO__ = audio;
+    }
+  })();
+  </script>
+  
+  <header class="nb-top">
+    <a href="main.html">← 복지몰로 돌아가기</a>
+    <div class="nb-tools">
+      <span>메모 색:</span>
+      <div class="palette" id="palette">
+        <button data-color="paper-yellow" style="background:var(--paper-yellow)"></button>
+        <button data-color="paper-pink"   style="background:var(--paper-pink)"></button>
+        <button data-color="paper-blue"   style="background:var(--paper-blue)"></button>
+        <button data-color="paper-green"  style="background:var(--paper-green)"></button>
+        <button data-color="paper-lilac"  style="background:var(--paper-lilac)"></button>
+      </div>
+      <button id="addNoteBtn" class="btn">메모 붙이기</button>
+      <button id="signOutBtn" class="btn">로그아웃</button>
+    </div>
+  </header>
+
+  <main class="nb-board" id="board" aria-label="자유 메모 보드" style="touch-action:none">
+    <div class="nb-hint">더블클릭으로도 생성 · 드래그로 이동 · 자동 저장</div>
+  </main>
+
+    <!-- 4:44 이스터에그 오버레이 -->
+   <div id="omenOverlay" class="omen" aria-hidden="true">
+     <img id="omenImg" class="omen-img" src="assets/omen.jpg" alt="" />
+     <div class="omen-noise"></div>
+     <div class="omen-black"></div>
+     <div id="omenText" class="omen-kk"></div>
+    </div>
+
+
+  <!-- Supabase 모듈 -->
+  <script type="module" src="./notes.js"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>백일몽주식회사</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="login-page">
+  <audio id="bgm" src="assets/music.mp3" autoplay loop></audio>
+  <script>
+  (function(){
+    // 로그인 페이지에서만 최초 재생
+    if (!window.__BGM_LOADED__) {
+     const audio = new Audio("assets/music.mp3");
+     audio.loop = true;
+     audio.volume = 0.4;
+
+     // 볼륨 등 조정 가능
+     window.__BGM_AUDIO__ = audio;
+     window.__BGM_LOADED__ = true;
+
+     // 사용자가 클릭(로그인 등) 시 재생 허용
+     document.addEventListener("click", ()=>{
+       audio.play().then(()=>{
+         console.log("🎵 로그인 페이지 BGM 재생 시작");
+         // 재생 상태 저장
+         sessionStorage.setItem("bgm_enabled", "1");
+         sessionStorage.setItem("bgm_time", audio.currentTime);
+       }).catch(()=>{});
+     });
+
+     // 진행도 저장
+     audio.addEventListener("timeupdate", ()=>{
+       sessionStorage.setItem("bgm_time", audio.currentTime);
+     });
+    }
+  })();
+  </script>
+
+
+  <style>
+  #audio {
+    display: none;
+  }
+  </style>
+
+
+  <header class="login-header">
+    <div class="login-header__inner">
+      <strong class="brand">Baekilmong Account</strong>
+    </div>
+  </header>
+
+  <main class="login-wrap" aria-labelledby="loginTitle">
+    <section class="login-card">
+      <h1 id="loginTitle" class="login-title">여러분이 필요한 모든 약, 바로 백일몽에서</h1>
+      <p class="login-sub">사원입니까? <s><i>도망쳐</i></s></p>
+
+      <label class="sr-only" for="username">아이디</label>
+      <input id="username" type="text" placeholder="아이디" autocomplete="username" />
+
+      <label class="sr-only" for="password">비밀번호</label>
+      <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password" />
+
+      <div class="login-actions">
+        <button class="btn primary" id="loginBtn" type="button">로그인</button>
+        <button id="openSignupBtn" class="link-btn" type="button">회원가입</button>
+      </div>
+
+      <p id="loginError" class="error" role="alert" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <!-- ✅ 추가: 회원가입 팝업 -->
+<div id="signupPop" class="cart-pop" aria-hidden="true">
+  <div class="cart-pop__panel" role="dialog" aria-modal="true" aria-labelledby="signupTitle">
+    <button id="closeSignup" class="cart-pop__close" aria-label="닫기">✕</button>
+    <h3 id="signupTitle" class="cart-pop__title">회원가입</h3>
+
+    <form id="signupForm" class="points__form" novalidate>
+      <div>
+        <label for="suName" class="points__label">이름</label>
+        <input id="suName" name="name" placeholder="이름" autocomplete="name" required/>
+      </div>
+      <div>
+        <label for="suId" class="points__label">아이디</label>
+        <input id="suId" name="id" placeholder="아이디" autocomplete="username" required/>
+      </div>
+      <div>
+        <label for="suPw" class="points__label">비밀번호</label>
+        <input id="suPw" name="pw" type="password" placeholder="비밀번호" autocomplete="new-password" required/>
+      </div>
+
+      <div class="points__actions" style="margin-top:8px">
+        <button id="signupSubmit" class="btn" type="submit">가입 완료</button>
+        <button id="signupCancel" class="btn" type="button">취소</button>
+        <span id="signupMsg" class="points__msg" aria-live="polite"></span>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

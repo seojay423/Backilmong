@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>우%주 쇼+^핑몰</title>
+<style>
+  :root{
+    --bg:#002e9a;
+    --fg:#e6f3ff;
+    --alert:#ff4d6d;
+    --red:#ff3b30;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--fg);
+    font:20px "BatangChe", "DotumChe", "Times New Roman", serif;
+    letter-spacing: 0.5px;
+    display:flex; align-items:center; justify-content:center;
+    image-rendering:pixelated;
+    overflow:hidden;
+  }
+  .wrap{
+    width:min(900px,92vw);
+    text-align:right;             /* ✅ 우측 정렬 유지 */
+    padding:6vh 4vw;
+  }
+  em{font-style:italic;}
+  .line{position:relative; margin:10px 0;}
+  .title{font-weight:700;}
+  .price-red{color:var(--red);}
+  .strike{text-decoration:line-through;text-decoration-thickness:2px;}
+  .line.sold em{text-decoration:line-through;text-decoration-thickness:2px;}
+  .line.sold::before{
+    content:"품절!";
+    position:absolute;
+    right: -60px;      /* ✅ 글자 바로 옆에 위치 */
+    top: 0;
+    color:var(--alert);
+    font-weight:700;
+  }
+
+  /* 지지직 효과 */
+  body.glitch{animation:tilt .2s ease-in-out 1 both,shake .7s steps(2,end) 1 both;}
+  @keyframes tilt{0%{transform:skewX(0)}100%{transform:skewX(-2deg)}}
+  @keyframes shake{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(25deg)}}
+
+  .noise::before,.noise::after{content:"";position:fixed;inset:0;pointer-events:none;}
+  .noise::before{
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.05)0,rgba(255,255,255,.05)1px,transparent 2px,transparent 4px);
+    mix-blend-mode:overlay;opacity:.25;
+  }
+  .noise::after{
+    background:linear-gradient(to right,rgba(255,255,255,.05),transparent 60%),repeating-linear-gradient(90deg,transparent 0,transparent 2px,rgba(255,255,255,.06)3px);
+    opacity:0;animation:flick .7s steps(2,end) 1 forwards;
+  }
+  body.glitch .noise::after{opacity:1}
+  @keyframes flick{0%{transform:translateX(0)}100%{transform:translateX(3px)}}
+  @media(max-width:600px){body{font-size:18px}}
+</style>
+</head>
+<body>
+  <script>
+  (function(){
+    // 로그인 페이지에서 bgm_enabled가 true일 경우
+    if (sessionStorage.getItem("bgm_enabled") === "1" && !window.__BGM_AUDIO__) {
+      const audio = new Audio("assets/music.mp3");
+      audio.loop = true;
+      audio.volume = 0.4;
+
+      // 이전 재생 위치 복원
+      const last = Number(sessionStorage.getItem("bgm_time") || 0);
+      if (isFinite(last) && last > 0) audio.currentTime = last;
+
+      audio.play().then(()=>{
+        console.log("🎧 메인 페이지에서 이어서 재생됨");
+      }).catch(()=>{
+        console.log("🔇 자동재생 차단됨 (사용자 상호작용 필요)");
+      });
+
+      // 진행도 계속 저장
+      audio.addEventListener("timeupdate", ()=>{
+        sessionStorage.setItem("bgm_time", audio.currentTime);
+      });
+
+      window.__BGM_AUDIO__ = audio;
+    }
+  })();
+  </script> 
+
+  <div class="wrap noise" id="wrap">
+
+    <p class="line title"><em>물건</em></p>
+
+    <p class="line"><em>흡혈 식기 - ₩14,999,999</em></p>
+    <p class="line"><em>더넓은 무전기 - ₩4,999,999</em></p>
+    <p class="line" id="item-alice"><em>앨리스 피크닉세트 - ₩11,999,999</em></p>
+    <p class="line"><em>우리가 도움! - ₩66,666,666</em></p>
+    <p class="line" id="item-silver"><em>※할인!※ 은화 뱀 - <span class="price-red">₩4,999,999</span></em></p>
+    <p class="line"><em><span class="strike">₩19,999,999</span></em></p>
+
+  </div>
+
+<script>
+document.addEventListener('click',()=>{
+  document.body.classList.add('glitch');
+  document.getElementById('item-alice')?.classList.add('sold');
+  document.getElementById('item-silver')?.classList.add('sold');
+},{once:true});
+</script>
+</body>
+</html>

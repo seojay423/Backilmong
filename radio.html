@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Qterw-E-63 | 안녕 교통정보</title>
+<style>
+:root {
+  --bg:#0b0f14;
+  --ink:#e9edf3;
+  --accent:#ff5e57;
+}
+body {
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Pretendard",system-ui,sans-serif;
+  margin:0;
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+}
+.radio {
+  width:260px; height:180px;
+  border:2px solid #222;
+  border-radius:16px;
+  background:linear-gradient(#1a1f27,#0e1013);
+  box-shadow:0 0 40px #000 inset,0 0 12px #ff5e5715;
+  position:relative;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s ease;
+}
+.radio:hover {
+  box-shadow:0 0 40px #ff5e5720 inset,0 0 20px #ff5e5730;
+}
+.radio::before {
+  content:"";
+  position:absolute;inset:0;
+  background:url('https://upload.wikimedia.org/wikipedia/commons/2/25/CRT_static.gif');
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease;
+}
+.radio.active::before { opacity:.25; }
+
+.speaker {
+  width:70%;height:60%;
+  border-radius:8px;
+  background:repeating-radial-gradient(circle at center,#15181d 0 1px,#0b0e12 2px);
+  box-shadow:inset 0 0 10px #000;
+}
+
+.screen {
+  margin-top:30px;
+  width:80%;max-width:500px;
+  min-height:80px;
+  background:#10141a;
+  border:1px solid #1d222b;
+  border-radius:10px;
+  padding:16px;
+  font-size:14px;
+  line-height:1.6;
+  box-shadow:0 0 12px #000 inset;
+  text-align:center;
+  white-space:pre-wrap;
+  opacity:0;
+  transition:opacity .6s ease;
+}
+.screen.show { opacity:1; }
+
+h1 {
+  font-size:18px;
+  font-weight:600;
+  margin-bottom:8px;
+  opacity:.85;
+}
+.code {font-size:12px;opacity:.5;margin-top:8px;}
+
+/* 붉은 경고 연출 */
+.glitch {
+  position:absolute;
+  inset:0;
+  background:url('https://upload.wikimedia.org/wikipedia/commons/2/25/CRT_static.gif');
+  mix-blend-mode:screen;
+  opacity:0.6;
+  pointer-events:none;
+  animation:glow .08s infinite alternate;
+  border-radius:inherit;
+}
+@keyframes glow {
+  from { filter:hue-rotate(0deg) brightness(1); }
+  to { filter:hue-rotate(45deg) brightness(2); }
+}
+
+/* 붉은 텍스트 등장 */
+.screen.alert {
+  color:#ff4b4b;
+  font-weight:700;
+  text-shadow:0 0 8px #ff0000aa;
+  font-size:22px;
+  letter-spacing:3px;
+}
+
+/* 라디오 녹아내림 */
+@keyframes melt {
+  0% { transform:scale(1) rotate(0deg); opacity:1; filter:none; }
+  40% { transform:scale(1.05) skewY(3deg); filter:hue-rotate(20deg) brightness(1.5); }
+  100% { transform:translateY(120px) scaleX(1.2) scaleY(0.1); opacity:0; filter:blur(8px) brightness(0.2); }
+}
+.radio.melting {
+  animation:melt 2.2s ease-in forwards;
+}
+</style>
+</head>
+<body>
+    <script>
+  (function(){
+    // 로그인 페이지에서 bgm_enabled가 true일 경우
+    if (sessionStorage.getItem("bgm_enabled") === "1" && !window.__BGM_AUDIO__) {
+      const audio = new Audio("assets/music.mp3");
+      audio.loop = true;
+      audio.volume = 0.4;
+
+      // 이전 재생 위치 복원
+      const last = Number(sessionStorage.getItem("bgm_time") || 0);
+      if (isFinite(last) && last > 0) audio.currentTime = last;
+
+      audio.play().then(()=>{
+        console.log("🎧 메인 페이지에서 이어서 재생됨");
+      }).catch(()=>{
+        console.log("🔇 자동재생 차단됨 (사용자 상호작용 필요)");
+      });
+
+      // 진행도 계속 저장
+      audio.addEventListener("timeupdate", ()=>{
+        sessionStorage.setItem("bgm_time", audio.currentTime);
+      });
+
+      window.__BGM_AUDIO__ = audio;
+    }
+  })();
+  </script> 
+
+  <h1>Qterw-E-63</h1>
+  <div class="radio" id="radio">
+    <div class="speaker"></div>
+  </div>
+  <div class="screen" id="screen"></div>
+
+<script>
+const normal = [
+  "맑고 쾌청한 오늘의 날씨처럼 도로는 한산하네요. 다만 오후부터 비가 내리겠습니다.",
+  "강북 지역은 비교적 원활하지만, 강남 방면은 정체가 이어지고 있습니다.",
+  "한강 이남 구간 교통량이 다소 늘고 있습니다. 안전거리 유지하시기 바랍니다.",
+  "출근길 혼잡은 다소 줄어들었지만, 신호등 고장으로 일부 구간이 정체 중입니다.",
+  "기온이 낮아 노면이 얼어 있습니다. 브레이크는 평소보다 부드럽게 밟으세요.",
+  "도심을 벗어난 국도엔 안개가 자욱합니다. 시야 확보에 주의하세요.",
+  "서울 전역 도로는 평소보다 고요합니다. 마치 아무도 이동하지 않는 듯하네요.",
+  "서부간선도로, 차량이 거의 보이지 않습니다. 이상하게도요.",
+  "이상 기류로 인해 신호체계가 잠시 오류를 일으켰습니다. 기다려 보세요.",
+  "도로 위엔 평소보다 새소리가 크게 들립니다. 누군가 창문을 연 모양이군요.",
+  "맑은 하늘 아래 도로가 유난히 반짝입니다. 운전석 유리에 반사된 빛이 조금 따갑네요.",
+  "한낮의 열기로 아스팔트가 출렁입니다. 마치 그 아래에 무언가가 숨 쉬는 듯합니다.",
+  "초여름 더위로 냉방을 켠 차량이 늘었습니다. 하지만 창문을 닫아도, 이상하게 바람 소리가 들립니다.",
+  "이른 아침 안개가 짙게 깔렸습니다. 헤드라이트가 전부 켜져 있는데도, 앞차가 잘 보이지 않습니다.",
+  "남쪽 하늘엔 먹구름이 몰려옵니다. 빗방울이 창문을 두드리기 시작했어요… 규칙적으로, 너무 규칙적으로요.",
+  "서늘한 바람이 분다고 합니다. 방금 창문 사이로 지나간 그 바람이, 이름을 속삭였던 것 같습니다.",
+  "갑작스러운 폭우로 시야 확보가 어렵습니다. 하지만 도로 위엔 차가 없습니다. 빗소리만 남아 있네요.",
+  "북서풍이 강하게 불며 낙엽이 도로를 덮고 있습니다. 바람결마다 사람 목소리 같은 잔향이 섞여 있습니다.",
+  "한강교 위는 바람이 거셉니다. 차창을 닫고 라디오 볼륨을 높이세요. 혹은… 지금 끄세요.",
+  "기온이 급격히 떨어지며 서리가 내렸습니다. 차창 위엔 ‘다녀오셨나요?’라는 문구가 쓰여 있네요.",
+  "이상하게도 오늘은 하늘색이 어제와 다릅니다. 회색과 붉은빛이 뒤섞였다고 리포터가 전했습니다.",
+  "황사 경보가 내려졌습니다. 하지만 먼지는 금빛으로 반짝입니다. 누군가 뿌린 듯 고르게요.",
+  "남부 지역엔 천둥이 치고 있습니다. 라디오 전파가 불안정하니 방송이 끊기면 그대로 기다리세요.",
+  "폭풍 경보와 함께 일부 구간이 통제되었습니다. 통제선 밖에서 누군가 손을 흔들고 있습니다.",
+  "기압이 낮아져 모든 신호등이 느리게 깜빡이고 있습니다. 누가 리모컨으로 시간을 조절하는 것 같습니다.",
+  "늦은 밤, 눈이 내리기 시작했습니다. 고요한 도로 위로 흰 그림자가 몇 개 떠다닙니다.",
+  "이상기온으로 인해 일부 구간의 온도가 섭씨 영하 15도까지 떨어졌습니다. 라디오 주파수가 서늘해집니다.",
+  "소나기가 내린 후 도로가 반사광으로 뒤덮였습니다. 반사되는 건 빛뿐만이 아닌 것 같습니다.",
+  "구름이 낮게 깔리며 도시 전체가 덮였습니다. 높이 있는 빌딩 옥상엔, 누군가 서 있는 게 보입니다.",
+  "달이 유난히 밝은 밤입니다. 가로등이 모두 꺼졌는데도 길이 잘 보입니다. 이유는 묻지 마세요.",
+  "햇빛이 강해 운전자의 그림자가 두 겹으로 늘어집니다. 어느 쪽이 당신일까요?",
+  "온도계가 이상합니다. 도로 위 온도는 27도, 차량 내부는 27도, 라디오 주파수도 27입니다.",
+  "비가 멈췄습니다. 하지만 유리창에 맺힌 물방울은 여전히 아래로 흐르지 않습니다.",
+  "지금 하늘엔 비가 내리지 않는데, 라디오 전파에 ‘빗소리’가 섞여 들어오고 있습니다.",
+  "구름 사이로 붉은 빛이 번집니다. 해가 진 건지, 무언가가 떠오른 건지 확실치 않습니다."
+];
+const warning = [
+  "오늘은 우연히 만나는 사람의 말을 조심하세요. 작은 농담이 오해로 번질 수 있습니다.",
+  "비가 오는 날엔 차뿐 아니라 사람의 마음도 미끄럽습니다. 발을 디딜 곳을 확인하세요.",
+  "무심코 돌아본 창문 속에 당신이 아닌 누군가가 서 있을지도 모릅니다.",
+  "오늘은 신호를 두 번 기다리세요. 첫 번째는 당신을 위한 게 아닙니다.",
+  "서두르지 마세요. 당신의 도착지는 여전히 그 자리에 있습니다.",
+  "지하도로 진입 전, 거울을 확인하세요. 돌아오는 출구가 하나 줄었을지도 모릅니다.",
+  "출근길의 정체는 피할 수 있습니다. 하지만 퇴근길의 정체는 피할 수 없을 겁니다.",
+  "교차로에서 낯선 음악이 들린다면, 브레이크를 밟지 마세요. 그건 멈추라는 신호가 아닙니다.",
+  "오늘은 라디오를 끄는 게 좋겠습니다. 이 방송은 당신에게만 송출되고 있으니까요."
+];
+
+const screen = document.getElementById("screen");
+const radio = document.getElementById("radio");
+let clickCount = 0;
+
+function randomPick() {
+  const roll = Math.random();
+  if (roll < 0.15) {
+    const msg = warning[Math.floor(Math.random() * warning.length)];
+    return `안녕하세요! 생생 교통예보입니다.\n현재 서울시의 출근길 도로 상황은...\n\n${msg}`;
+  } else {
+    const msg = normal[Math.floor(Math.random() * normal.length)];
+    return `안녕하세요! 생생 교통예보입니다.\n현재 서울시의 출근길 도로 상황은...\n\n${msg}`;
+  }
+}
+
+function playNoise(){
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const buffer = ctx.createBuffer(1, ctx.sampleRate * 1.2, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i=0;i<data.length;i++) data[i] = Math.random()*2-1;
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  noise.connect(ctx.destination);
+  noise.start();
+}
+
+// ★ 타이핑 효과 함수
+function typeText(el, text, delay=160) {
+  el.textContent = "";
+  let i = 0;
+  const timer = setInterval(()=>{
+    el.textContent += text[i];
+    i++;
+    if (i >= text.length) clearInterval(timer);
+  }, delay);
+}
+
+radio.addEventListener("click", ()=>{
+  clickCount++;
+
+  // ★ 4번째 클릭 시 경고 시퀀스
+  if (clickCount === 4) {
+    radio.insertAdjacentHTML('beforeend','<div class="glitch"></div>');
+    playNoise();
+    screen.className = "screen show alert";
+    typeText(screen, "듣 지 마", 280);
+    setTimeout(()=>{
+      radio.classList.add("melting");
+      setTimeout(()=>{
+        radio.style.display="none";
+        screen.textContent = "";
+        screen.classList.remove("alert");
+      }, 2200);
+    }, 2000);
+    return;
+  }
+
+  // 일반 작동
+  radio.classList.add("active");
+  playNoise();
+  screen.classList.remove("show");
+  setTimeout(()=>{
+    screen.textContent = randomPick();
+    screen.classList.add("show");
+  }, 900);
+  setTimeout(()=> radio.classList.remove("active"), 2000);
+});
+</script>
+</body>
+</html>

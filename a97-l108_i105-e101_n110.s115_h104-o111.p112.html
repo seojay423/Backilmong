@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>우^주 쇼+!핑몰</title>
+  <style>
+    body {
+      margin: 0;
+      background: #002e9a; /* 하이텔 파랑 */
+      color: #e6f3ff;
+      font: 20px "Lucida Console", "Consolas", "Courier New", monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      text-align: center;
+      image-rendering: pixelated;
+    }
+    p {
+      margin: 10px 0;
+    }
+    p:nth-child(1) {
+      color: #ffe36b; /* 노란색 */
+      font-size: 28px;
+    }
+    p:nth-child(2) {
+      text-decoration: underline;
+      color: #fc0000; /* 붉은색 */
+    }
+    p:nth-child(3) {
+      color: #00ff99;
+    }
+    em {
+      font-style: italic;
+    }
+    .blink {
+      color: #ff4d6d;
+      animation: blink 1s steps(2, start) infinite;
+    }
+    @keyframes blink {
+      to { opacity: 0; }
+    }
+
+    .link {
+    color: #00ffff;              /* 밝은 시안 */
+    text-decoration: underline;
+    font-style: italic;
+    }
+    .link:hover, .link:focus {
+    color: #66ffff;              /* hover 시 더 밝게 */
+    opacity: 1;
+    }
+    .corner-gif {
+    position: fixed;
+    right: 16px;   /* 화면 오른쪽 여백 */
+    bottom: 0%;  /* 화면 아래 여백 */
+    width: 150px;  /* 🔧 크기 조정 */
+    height: auto;  /* 비율 유지 */
+    z-index: 9999; /* 다른 요소 위에 표시 */
+    image-rendering: pixelated; /* 도트 느낌 살리기 */
+    }
+
+
+  </style>
+</head>
+<body>
+  <script>
+  (function(){
+    // 로그인 페이지에서 bgm_enabled가 true일 경우
+    if (sessionStorage.getItem("bgm_enabled") === "1" && !window.__BGM_AUDIO__) {
+      const audio = new Audio("assets/music.mp3");
+      audio.loop = true;
+      audio.volume = 0.4;
+
+      // 이전 재생 위치 복원
+      const last = Number(sessionStorage.getItem("bgm_time") || 0);
+      if (isFinite(last) && last > 0) audio.currentTime = last;
+
+      audio.play().then(()=>{
+        console.log("🎧 메인 페이지에서 이어서 재생됨");
+      }).catch(()=>{
+        console.log("🔇 자동재생 차단됨 (사용자 상호작용 필요)");
+      });
+
+      // 진행도 계속 저장
+      audio.addEventListener("timeupdate", ()=>{
+        sessionStorage.setItem("bgm_time", audio.currentTime);
+      });
+
+      window.__BGM_AUDIO__ = audio;
+    }
+  })();
+  </script> 
+
+  <p>&lt;우주 쇼핑몰&gt;</p>
+  <p>※외계에서 온 멋진 물건※~!!</p>
+  <p>&gt;&gt;나는 <a class="link" href="_97Ax108Z69E65N110Q73H104O111P112_key.sys.html" target="_blank" rel="noopener"><em>물건</em></a>을 본다 <span class="blink">▌</span></p>
+  <img src="assets/ufo.gif" alt="dancing alien" class="corner-gif">
+</body>
+</html>
